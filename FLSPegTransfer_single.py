@@ -5,6 +5,7 @@ import rospy
 import time
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image, CompressedImage, PointCloud2
+import sys
 
 from FLSpegtransfer.vision.BlockDetection_single import BlockDetection
 from FLSpegtransfer.vision.MappingC2R import MappingC2R
@@ -150,7 +151,7 @@ class FLSPegTransfer():
                     cv2.imshow("masked_blocks", blocks_overlayed)
                     cv2.waitKey(1000)
                     if not auto_flag:
-                        user_input = raw_input("1: Left to right,  2: Right to left")
+                        user_input = raw_input("1: Left to right,  2: Right to left,  anything else quit ")
                         if user_input == "1":
                             self.__moving_l2r_flag = True
                             self.__moving_r2l_flag = False
@@ -160,6 +161,8 @@ class FLSPegTransfer():
                         else:
                             self.__moving_l2r_flag = False
                             self.__moving_r2l_flag = False
+                            print('Exiting now.')
+                            sys.exit()
 
                     # Move blocks from left to right
                     if self.__moving_l2r_flag:
