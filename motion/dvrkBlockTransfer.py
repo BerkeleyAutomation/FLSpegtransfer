@@ -23,7 +23,7 @@ class dvrkBlockTransfer():
         self.__jaw_org2 = [0.0]              # jaw angle in (deg)
 
         self.__height_ready = -0.115
-        self.__height_drop = -0.128
+        self.__height_drop = -0.131
         self.__height_adjusted = -0.011  # height difference between checkerboard & blocks
         self.__rot_offset1 = [0, 0, 0]   # rot offset of the arm base (deg)
         self.__rot_offset2 = [0, 0, 0]  # rot offset of the arm base (deg)

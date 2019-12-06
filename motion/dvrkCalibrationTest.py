@@ -28,8 +28,8 @@ def move_to_corners(arm_name, roll_angle=0):
     # Move PSM1 to go through all points.
     arm.set_pose(pos_org[index], rot_org[index])
     arm.set_jaw(jaw_org[index])
-    for i in range(4,row_board):
-        for j in range(4,col_board):
+    for i in range(0,row_board):
+        for j in range(0,col_board):
             if (index==0 and j==0) or (index==0 and j==1):    # PSM1
                 pass
             elif (index==1 and j==6) or (index==1 and j==7):   # PSM2
@@ -38,6 +38,7 @@ def move_to_corners(arm_name, roll_angle=0):
                 pos_0 = mapping.mapping_table_0[i][j]
                 pos_90 = mapping.mapping_table_90[i][j]
                 pos = interpolate(pos_0, pos_90, roll_angle)
+                print(j,i) # the order it gets stored
                 print pos
 
                 # just checking if the ROS input is fine
@@ -68,7 +69,7 @@ def interpolate(output_0, output_90, roll_angle):
     return output_final
 
 if __name__ == "__main__":
-    # move_to_corners(arm_name='/PSM2', roll_angle=0)
-    # move_to_corners(arm_name='/PSM2', roll_angle=90)
-    # move_to_corners(arm_name='/PSM1', roll_angle=0)
+    #move_to_corners(arm_name='/PSM2', roll_angle=0)
+    #move_to_corners(arm_name='/PSM2', roll_angle=90)
+    #move_to_corners(arm_name='/PSM1', roll_angle=0)
     move_to_corners(arm_name='/PSM1', roll_angle=90)
