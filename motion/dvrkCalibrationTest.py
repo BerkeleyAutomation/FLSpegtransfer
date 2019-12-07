@@ -9,7 +9,7 @@ def move_to_corners(arm_name, roll_angle=0):
     col_board = 8
 
     pos_org = [[0.055, 0.0, -0.1], [-0.055, 0.0, -0.1]]
-    rot_org1 = np.array([roll_angle, 0, 0]) * np.pi / 180.
+    rot_org1 = np.array([roll_angle, 30, -10]) * np.pi / 180.
     rot_org2 = np.array([roll_angle, 0, 0]) * np.pi / 180.
     rot_org = [U.euler_to_quaternion(rot_org1), U.euler_to_quaternion(rot_org2)]
     jaw_org = [[-20 * np.pi / 180.], [-20 * np.pi / 180.]]
@@ -28,6 +28,9 @@ def move_to_corners(arm_name, roll_angle=0):
     # Move PSM1 to go through all points.
     arm.set_pose(pos_org[index], rot_org[index])
     arm.set_jaw(jaw_org[index])
+
+    #print(arm.get_current_orientation()) # DOESN'T WORK
+
     for i in range(0,row_board):
         for j in range(0,col_board):
             if (index==0 and j==0) or (index==0 and j==1):    # PSM1
@@ -71,5 +74,5 @@ def interpolate(output_0, output_90, roll_angle):
 if __name__ == "__main__":
     #move_to_corners(arm_name='/PSM2', roll_angle=0)
     #move_to_corners(arm_name='/PSM2', roll_angle=90)
-    move_to_corners(arm_name='/PSM1', roll_angle=0)
-    #move_to_corners(arm_name='/PSM1', roll_angle=90)
+    #move_to_corners(arm_name='/PSM1', roll_angle=0)
+    move_to_corners(arm_name='/PSM1', roll_angle=90)

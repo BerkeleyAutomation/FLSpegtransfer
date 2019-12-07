@@ -101,7 +101,7 @@ class FLSPegTransfer():
             n_rarm = map(int, n_rarm[n_rarm>6])
         return n_rarm
 
-    def move_blocks(self, pick_number_rarm, final_gp_rarm, final_pp_rarm):
+    def move_blocks(self, pick_number_rarm, final_gp_rarm, final_pp_rarm, direction):
         arg_pick = np.argwhere(np.array(final_gp_rarm)[:, 0] == pick_number_rarm)
         arg_place = arg_pick
         if len(arg_pick) == 0 or len(arg_place) == 0:
@@ -113,9 +113,15 @@ class FLSPegTransfer():
             arg_pick = arg_pick[0][0]
             arg_place = arg_place[0][0]
             pos_pick1 = self.__mapping1.transform_pixel2robot(final_gp_rarm[arg_pick][3:], final_gp_rarm[arg_pick][2])
-            rot_pick1 = [final_gp_rarm[arg_pick][2], 0, 0]
+            rot_pick1 = [final_gp_rarm[arg_pick][2], 30, -10]
             pos_place1 = self.__mapping1.transform_pixel2robot(final_pp_rarm[arg_place][3:], final_pp_rarm[arg_place][2])
-            rot_place1 = [final_pp_rarm[arg_place][2], 0, 0]
+
+            # Daniel: TUNE! These values might have to be different from calibration.
+            # I tested with the single arm case.
+            if direction == 'l2r':
+                rot_place1 = [final_pp_rarm[arg_place][2], 50, -20]
+            else:
+                rot_place1 = [final_pp_rarm[arg_place][2], 70, -50]
 
         pos_pick2 = []
         rot_pick2 = []
@@ -174,7 +180,7 @@ class FLSPegTransfer():
                                 self.__moving_l2r_flag = False
                                 self.__moving_r2l_flag = True
                         for nr in n_rarm:
-                            self.move_blocks(nr, final_gp_rarm, final_pp_rarm)
+                            self.move_blocks(nr, final_gp_rarm, final_pp_rarm, 'l2r')
                     # Move blocks from right to left
                     elif self.__moving_r2l_flag:
                         n_rarm = self.select_ordering(final_gp_rarm, direction='r2l')
@@ -183,7 +189,7 @@ class FLSPegTransfer():
                                 self.__moving_l2r_flag = False
                                 self.__moving_r2l_flag = False
                         for nr in n_rarm:
-                            self.move_blocks(nr, final_gp_rarm, final_pp_rarm)
+                            self.move_blocks(nr, final_gp_rarm, final_pp_rarm, 'r2l')
         finally:
             cv2.destroyAllWindows()
 

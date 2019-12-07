@@ -26,9 +26,9 @@ class dvrkBlockTransfer():
         self.__jaw_org2 = [-90.0]             # jaw angle in (deg)
 
         self.__height_ready = -0.115
-        self.__height_drop = -0.131
-        self.__height_adjusted_i1 = -0.010  # (intermediate) height difference, when we reach above peg.
-        self.__height_adjusted_i2 = -0.001  # (intermediate) height difference, to lower past peg but above block
+        self.__height_drop = -0.133
+        self.__height_adjusted_i1 = -0.028  # (intermediate) height difference, when we reach above peg and ask user if we are good.
+        self.__height_adjusted_i2 = -0.000  # (intermediate) height difference, to lower past peg but above block -- test on tallest block
         self.__height_adjusted = -0.010    # (final) height difference between checkerboard & blocks (i.e., final height)
         self.__rot_offset1 = [0, 0, 0]     # rot offset of the arm base (deg)
         self.__rot_offset2 = [0, 0, 0]     # rot offset of the arm base (deg)
@@ -46,6 +46,7 @@ class dvrkBlockTransfer():
     """
 
     def move_origin(self):
+        # Daniel note: debug positions/orientations by changing origins and exiting after this.
         print('Moving dvrk to origin, should have closed grippers.')
         rot_temp1 = (np.array(self.__rot_org1) + np.array(self.__rot_offset1))*np.pi/180.
         rot_temp2 = (np.array(self.__rot_org2) + np.array(self.__rot_offset2))*np.pi/180.
@@ -194,6 +195,11 @@ class dvrkBlockTransfer():
         self.__dvrk.set_pose(pos_place1, q_place1, pos_place2, q_place2)
         self.__dvrk.set_jaw(jaw_closing1, jaw_closing2)
 
+        print(rot_place1)
+        print(rot_place2)
+        print(rot_place1)
+        #sys.exit()
+
         # Open the jaw
         self.__dvrk.set_pose(pos_place1, q_place1, pos_place2, q_place2)
         self.__dvrk.set_jaw(jaw_opening_drop1, jaw_opening_drop2)
@@ -201,6 +207,7 @@ class dvrkBlockTransfer():
         # move upon the pick-up spot hopefully without block
         self.__dvrk.set_pose(pos_ready1, q_place1, pos_ready2, q_place2)
         self.__dvrk.set_jaw(jaw_opening_drop1, jaw_opening_drop2)
+
 
 if __name__ == "__main__":
     motion = dvrkBlockTransfer()
