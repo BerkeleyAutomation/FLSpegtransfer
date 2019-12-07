@@ -11,7 +11,8 @@ class MappingC2R():
         self.__col = col
 
         # checkerboard corners
-        filename = '/home/hwangmh/pycharmprojects/FLSpegtransfer/calibration_files/corners_8x6.npy'
+        #filename = '/home/hwangmh/pycharmprojects/FLSpegtransfer/calibration_files/corners_8x6.npy'
+        filename = '/home/hwangmh/AUTOLAB/FLSpegtransfer/calibration_files/corners_8x6.npy'
         self.__cb_corners = np.load(filename).reshape(self.__row, self.__col, 2)
 
         # mapping table (cb corners <-> robot)

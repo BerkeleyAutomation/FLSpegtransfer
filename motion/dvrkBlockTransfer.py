@@ -1,12 +1,15 @@
 from FLSpegtransfer.motion.dvrkDualArm import dvrkDualArm
 import FLSpegtransfer.utils.CmnUtil as U
 import numpy as np
+import sys
+
 
 class dvrkBlockTransfer():
     """
     Motion library for dvrk
     """
     def __init__(self):
+        print('Initializing motion library in AUTOLAB directory, not Minho directory.')
         # motion library
         self.__dvrk = dvrkDualArm()
 
@@ -16,20 +19,22 @@ class dvrkBlockTransfer():
         self.__pos2 = []
         self.__rot2 = []
         self.__pos_org1 = [0.055, 0.0, -0.1]  # xyz position in (m)
-        self.__rot_org1 = [0.0, 0.0, 0.0]    # (deg)
-        self.__jaw_org1 = [0.0]              # jaw angle in (deg)
-        self.__pos_org2 = [0.0, 0.0, -0.1]  # xyz position in (m)
-        self.__rot_org2 = [0.0, 0.0, 0.0]    # (deg)
-        self.__jaw_org2 = [0.0]              # jaw angle in (deg)
+        self.__rot_org1 = [0.0, 0.0, 0.0]     # (deg)
+        self.__jaw_org1 = [-90.0]             # jaw angle in (deg)
+        self.__pos_org2 = [0.0, 0.0, -0.1]    # xyz position in (m)
+        self.__rot_org2 = [0.0, 0.0, 0.0]     # (deg)
+        self.__jaw_org2 = [-90.0]             # jaw angle in (deg)
 
         self.__height_ready = -0.115
         self.__height_drop = -0.131
-        self.__height_adjusted = -0.011  # height difference between checkerboard & blocks
-        self.__rot_offset1 = [0, 0, 0]   # rot offset of the arm base (deg)
-        self.__rot_offset2 = [0, 0, 0]  # rot offset of the arm base (deg)
-        self.__jaw_opening = [40]   # (deg)
-        self.__jaw_opening_drop = [50]  # (deg)
-        self.__jaw_closing = [-5]   # (deg)
+        self.__height_adjusted_i1 = -0.010  # (intermediate) height difference, when we reach above peg.
+        self.__height_adjusted_i2 = -0.001  # (intermediate) height difference, to lower past peg but above block
+        self.__height_adjusted = -0.010    # (final) height difference between checkerboard & blocks (i.e., final height)
+        self.__rot_offset1 = [0, 0, 0]     # rot offset of the arm base (deg)
+        self.__rot_offset2 = [0, 0, 0]     # rot offset of the arm base (deg)
+        self.__jaw_opening = [40]          # (deg)
+        self.__jaw_opening_drop = [50]     # (deg)
+        self.__jaw_closing = [-5]          # (deg)
 
         # threading
         self.nStart = 0.0
@@ -41,6 +46,7 @@ class dvrkBlockTransfer():
     """
 
     def move_origin(self):
+        print('Moving dvrk to origin, should have closed grippers.')
         rot_temp1 = (np.array(self.__rot_org1) + np.array(self.__rot_offset1))*np.pi/180.
         rot_temp2 = (np.array(self.__rot_org2) + np.array(self.__rot_offset2))*np.pi/180.
         rot_org1 = U.euler_to_quaternion(rot_temp1)
@@ -48,10 +54,18 @@ class dvrkBlockTransfer():
         jaw_org1 = np.array(self.__jaw_org1)*np.pi/180.
         jaw_org2 = np.array(self.__jaw_org2)*np.pi/180.
         self.__dvrk.set_pose(self.__pos_org1, rot_org1, self.__pos_org2, rot_org2)
+
+        print('Changing jaws to: {}, {}'.format(jaw_org1, jaw_org2))
         self.__dvrk.set_jaw(jaw_org1, jaw_org2)
+        print('Changed jaws! Proceeding...')
 
     def pickup(self, pos_pick1, rot_pick1, pos_pick2, rot_pick2, which_arm='Both'):
         if (which_arm=='PSM1' or which_arm=='Both') and pos_pick1 != [] and rot_pick1 != []:
+            # Copy and set intermediates.
+            pos_ready1_i = [pos_pick1[0], pos_pick1[1], self.__height_ready + self.__height_adjusted_i1]
+            pos_pick1_i = list(pos_pick1)
+            pos_pick1_i[2] += self.__height_adjusted_i2
+            # Back to normal.
             pos_ready1 = [pos_pick1[0], pos_pick1[1], self.__height_ready]
             pos_pick1[2] += self.__height_adjusted
             rot_temp1 = (np.array(rot_pick1) + np.array(self.__rot_offset1))*np.pi/180.
@@ -59,6 +73,8 @@ class dvrkBlockTransfer():
             jaw_opening1 = np.array(self.__jaw_opening)*np.pi/180.
             jaw_closing1 = np.array(self.__jaw_closing)*np.pi/180.
         else:
+            pos_ready1_i = []
+            pos_pick1_i = []
             pos_pick1 = []
             q_pick1 = []
             pos_ready1 = []
@@ -66,6 +82,11 @@ class dvrkBlockTransfer():
             jaw_closing1 = []
 
         if (which_arm=='PSM2' or which_arm=='Both') and pos_pick2 != [] and rot_pick2 != []:
+            # Copy and set intermediates.
+            pos_ready2_i = [pos_pick2[0], pos_pick2[1], self.__height_ready + self.__height_adjusted_i1]
+            pos_pick2_i = list(pos_pick2)
+            pos_pick2_i[2] += self.__height_adjusted_i2
+            # Back to normal.
             pos_ready2 = [pos_pick2[0], pos_pick2[1], self.__height_ready]
             pos_pick2[2] += self.__height_adjusted
             rot_temp2 = (np.array(rot_pick2) + np.array(self.__rot_offset2)) * np.pi / 180.
@@ -73,6 +94,8 @@ class dvrkBlockTransfer():
             jaw_opening2 = np.array(self.__jaw_opening) * np.pi / 180.
             jaw_closing2 = np.array(self.__jaw_closing) * np.pi / 180.
         else:
+            pos_ready2_i = []
+            pos_pick2_i = []
             pos_pick2 = []
             q_pick2 = []
             pos_ready2 = []
@@ -89,17 +112,40 @@ class dvrkBlockTransfer():
             rot_org2 = U.euler_to_quaternion(rot_temp2)
             self.__dvrk.set_pose(pos_ready1, q_pick1, self.__pos_org2, rot_org2)
 
-        # move upon the pick-up spot and open the jaw
+        ## # OLD WAY --------------------------------
+        ## # move upon the pick-up spot and open the jaw
+        ## self.__dvrk.set_pose(pos_ready1, q_pick1, pos_ready2, q_pick2)
+        ## self.__dvrk.set_jaw(jaw_opening1, jaw_opening2)
+
+        ## # move down toward the block
+        ## self.__dvrk.set_pose(pos_pick1, q_pick1, pos_pick2, q_pick2)
+        ## self.__dvrk.set_jaw(jaw_opening1, jaw_opening2)
+
+        ## # close the jaw
+        ## self.__dvrk.set_pose(pos_pick1, q_pick1, pos_pick2, q_pick2)
+        ## self.__dvrk.set_jaw(jaw_closing1, jaw_closing2)
+        ## # OLD WAY --------------------------------
+
+        # NEW WAY --------------------------------
+        def to_rad(deg):
+            return np.array(deg) * np.pi / 180.
+
+        # move to the pick spot, then lower it a bit more.
         self.__dvrk.set_pose(pos_ready1, q_pick1, pos_ready2, q_pick2)
-        self.__dvrk.set_jaw(jaw_opening1, jaw_opening2)
+        self.__dvrk.set_pose(pos_ready1_i, q_pick1, pos_ready2_i, q_pick2)
+        self.__dvrk.set_jaw(to_rad([-30.0]), to_rad([-30.0]))
 
-        # move down toward the block
-        self.__dvrk.set_pose(pos_pick1, q_pick1, pos_pick2, q_pick2)
-        self.__dvrk.set_jaw(jaw_opening1, jaw_opening2)
+        user_input = raw_input('About to lower the arm(s). Are they safe? (y/n)')
+        if user_input != 'y':
+            print('Not safe! Exiting now!')
+            sys.exit()
 
-        # close the jaw
+        # move down toward the block, open once it's past peg, and move down further.
+        self.__dvrk.set_pose(pos_pick1_i, q_pick1, pos_pick2_i, q_pick2)
+        self.__dvrk.set_jaw(to_rad([90.0]), to_rad([90.0]))
         self.__dvrk.set_pose(pos_pick1, q_pick1, pos_pick2, q_pick2)
         self.__dvrk.set_jaw(jaw_closing1, jaw_closing2)
+        # NEW WAY --------------------------------
 
         # move upon the pick-up spot hopefully with block
         self.__dvrk.set_pose(pos_ready1, q_pick1, pos_ready2, q_pick2)

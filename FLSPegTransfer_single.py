@@ -131,7 +131,8 @@ class FLSPegTransfer():
 
     def main(self):
         try:
-            user_input = raw_input("Are you going to proceed automatically? (y or n)")
+            #user_input = raw_input("Are you going to proceed automatically? (y or n)")
+            user_input = 'n'
             if user_input == "y":   auto_flag = True
             elif user_input == "n": auto_flag = False
             else:   return

@@ -12,7 +12,7 @@ def move_to_corners(arm_name, roll_angle=0):
     rot_org1 = np.array([roll_angle, 0, 0]) * np.pi / 180.
     rot_org2 = np.array([roll_angle, 0, 0]) * np.pi / 180.
     rot_org = [U.euler_to_quaternion(rot_org1), U.euler_to_quaternion(rot_org2)]
-    jaw_org = [[0 * np.pi / 180.], [0 * np.pi / 180.]]
+    jaw_org = [[-20 * np.pi / 180.], [-20 * np.pi / 180.]]
     ready_height = 0.03
 
     arm = dvrkArm(arm_name)
@@ -71,5 +71,5 @@ def interpolate(output_0, output_90, roll_angle):
 if __name__ == "__main__":
     #move_to_corners(arm_name='/PSM2', roll_angle=0)
     #move_to_corners(arm_name='/PSM2', roll_angle=90)
-    #move_to_corners(arm_name='/PSM1', roll_angle=0)
-    move_to_corners(arm_name='/PSM1', roll_angle=90)
+    move_to_corners(arm_name='/PSM1', roll_angle=0)
+    #move_to_corners(arm_name='/PSM1', roll_angle=90)
