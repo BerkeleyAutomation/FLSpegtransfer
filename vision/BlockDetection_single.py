@@ -1,7 +1,37 @@
 import cv2
 import numpy as np
+import sys
+import os
+
+# (Daniel) some code from my BAIR Blog post:
+# https://gist.github.com/DanielTakeshi/8fe06f1ea1985bb9246abd5fd21c330e
+
+
+def depth_to_3ch(img, cutoff):
+    """Useful to turn the background into black into the depth images.
+    """
+    w,h = img.shape
+    new_img = np.zeros([w,h,3])
+    img = img.flatten()
+    img[img>cutoff] = 0.0 
+    img = img.reshape([w,h])
+    for i in range(3):
+        new_img[:,:,i] = img 
+    return new_img
+
+
+def depth_scaled_to_255(img):
+    assert np.max(img) > 0.0 
+    img = 255.0/np.max(img)*img
+    img = np.array(img,dtype=np.uint8)
+    for i in range(3):
+        img[:,:,i] = cv2.equalizeHist(img[:,:,i])
+    return img 
+
+
 
 class BlockDetection():
+
     def __init__(self):
         # data members
         self.__mask = []
@@ -27,7 +57,7 @@ class BlockDetection():
         self.__contour = self.load_contour(self.__mask, 2)
 
         # sample grasping points
-        self.__sample_grasping_points = self.load_grasping_point(gp_number=3, dist_center=23, dist_gp=3)
+        self.__sample_grasping_points = self.load_grasping_point(gp_number=3, dist_center=18, dist_gp=3)
         self.__sample_placing_points = self.load_grasping_point(gp_number=3, dist_center=12, dist_gp=3)
 
     def load_intrinsics(self, filename):
@@ -349,6 +379,21 @@ class BlockDetection():
         return colored
 
     def FLSPerception(self, img_depth):
+        # -------------------------------------------------------------------- #
+        # Daniel: adding some debugging here to save desired images.
+        # -------------------------------------------------------------------- #
+        #_img = img_depth
+        #_img[np.isnan(_img)] = 0
+        #print(np.max(_img))
+        #print(np.mean(_img))
+        #_img = depth_to_3ch(_img, cutoff=np.max(_img))
+        #_img = depth_scaled_to_255(_img)
+        #cv2.imwrite('img_depth_processed_for_humans.png', _img) # use for the paper?
+        #sys.exit()
+        # -------------------------------------------------------------------- #
+        # Daniel: end of debugging
+        # -------------------------------------------------------------------- #
+
         # Depth masking: thresholding by depth to find blocks & pegs
         blocks_masked = cv2.inRange(img_depth, self.__masking_depth_block[0], self.__masking_depth_block[1])
         pegs_masked = cv2.inRange(img_depth, self.__masking_depth_peg[0], self.__masking_depth_peg[1])
@@ -379,6 +424,7 @@ class BlockDetection():
         blocks_overlayed = self.overlay_grasping_pose(blocks_overlayed, final_pp_rarm, final_pp_rarm)
         # blocks_overlayed = self.overlay_numbering(blocks_overlayed, all_grasping_pose)
         return final_gp_rarm, final_pp_rarm, peg_points, pegs_overlayed, blocks_overlayed
+
 
 if __name__ == '__main__':
     # filename = "../img/img_depth"

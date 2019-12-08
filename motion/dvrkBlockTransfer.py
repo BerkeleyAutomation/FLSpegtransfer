@@ -29,12 +29,12 @@ class dvrkBlockTransfer():
         self.__height_drop = -0.135         # the smaller this is, the lower the gripper is when it releases blocks.
         self.__height_adjusted_i1 = -0.028  # (intermediate) height difference, when we reach above peg and ask user if we are good.
         self.__height_adjusted_i2 = -0.000  # (intermediate) height difference, to lower past peg but above block -- test on tallest block
-        self.__height_adjusted = -0.011    # (final) height difference between checkerboard & blocks (i.e., final height)
+        self.__height_adjusted = -0.012    # (final) height difference between checkerboard & blocks (i.e., final height)
         self.__rot_offset1 = [0, 0, 0]     # rot offset of the arm base (deg)
         self.__rot_offset2 = [0, 0, 0]     # rot offset of the arm base (deg)
         self.__jaw_opening = [40]          # (deg)
-        self.__jaw_opening_drop = [120]    # (deg) Daniel: can actually help with the stuck block case sometimes if it's large enough
-        self.__jaw_closing = [-5]          # (deg)
+        self.__jaw_opening_drop = [150]    # (deg) Daniel: can actually help with the stuck block case sometimes if it's large enough
+        self.__jaw_closing = [-20]          # (deg)
 
         # threading
         self.nStart = 0.0

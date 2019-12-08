@@ -119,11 +119,11 @@ class FLSPegTransfer():
             # Daniel: TUNE! These values might have to be different from calibration.
             # I tested with the single arm case.
             if direction == 'l2r':
-                # roughly [.., 40, -20] seems reasonable 
-                rot_place1 = [final_pp_rarm[arg_place][2], 40, -20]
+                # roughly [.., 40, -20] seems reasonable.
+                rot_place1 = [final_pp_rarm[arg_place][2], 50, -30]
             else:
                 # don't do [.., 60, 40] that's really bad.
-                rot_place1 = [final_pp_rarm[arg_place][2], 70, -40]
+                rot_place1 = [final_pp_rarm[arg_place][2], 50, -50]
 
         pos_pick2 = []
         rot_pick2 = []
@@ -158,6 +158,14 @@ class FLSPegTransfer():
                     cv2.imshow("img_color", self.__img_color)
                     cv2.imshow("masked_pegs", pegs_overlayed)
                     cv2.imshow("masked_blocks", blocks_overlayed)
+
+                    # DEBUGGING -- get images for the paper.
+                    cv2.imwrite('img_color.png', self.__img_color)
+                    cv2.imwrite('img_depth.png', self.__img_depth)
+                    cv2.imwrite('img_masked_pegs.png', pegs_overlayed)
+                    cv2.imwrite('img_masked_blocks.png', blocks_overlayed)
+                    sys.exit()
+
                     cv2.waitKey(1000)
                     if not auto_flag:
                         user_input = raw_input("1: Left to right,  2: Right to left,  anything else quit ")

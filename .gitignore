@@ -12,3 +12,7 @@ venv*
 
 # rosbag files
 *.bag
+
+
+# Ignore images
+*.png
