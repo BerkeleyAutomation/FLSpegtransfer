@@ -18,23 +18,23 @@ class dvrkBlockTransfer():
         self.__rot1 = []
         self.__pos2 = []
         self.__rot2 = []
-        self.__pos_org1 = [0.055, 0.0, -0.1]  # xyz position in (m)
-        self.__rot_org1 = [0.0, 0.0, 0.0]     # (deg)
-        self.__jaw_org1 = [-90.0]             # jaw angle in (deg)
-        self.__pos_org2 = [0.0, 0.0, -0.1]    # xyz position in (m)
-        self.__rot_org2 = [0.0, 0.0, 0.0]     # (deg)
-        self.__jaw_org2 = [-90.0]             # jaw angle in (deg)
+        self.__pos_org1 = [0.055, 0.0, -0.100]  # xyz position in (m)
+        self.__rot_org1 = [0.0, 0.0, 0.0]       # (deg)
+        self.__jaw_org1 = [-90.0]               # jaw angle in (deg)
+        self.__pos_org2 = [-0.070, 0.0, -0.100]    # xyz position in (m)
+        self.__rot_org2 = [0.0, 0.0, 0.0]       # (deg)
+        self.__jaw_org2 = [-90.0]               # jaw angle in (deg)
 
-        self.__height_ready = -0.115
+        self.__height_ready = -0.110        # default: -0.115
         self.__height_drop = -0.135         # the smaller this is, the lower the gripper is when it releases blocks.
         self.__height_adjusted_i1 = -0.028  # (intermediate) height difference, when we reach above peg and ask user if we are good.
         self.__height_adjusted_i2 = -0.000  # (intermediate) height difference, to lower past peg but above block -- test on tallest block
-        self.__height_adjusted = -0.012    # (final) height difference between checkerboard & blocks (i.e., final height)
-        self.__rot_offset1 = [0, 0, 0]     # rot offset of the arm base (deg)
-        self.__rot_offset2 = [0, 0, 0]     # rot offset of the arm base (deg)
-        self.__jaw_opening = [40]          # (deg)
-        self.__jaw_opening_drop = [150]    # (deg) Daniel: can actually help with the stuck block case sometimes if it's large enough
-        self.__jaw_closing = [-20]          # (deg)
+        self.__height_adjusted = -0.012     # (final) height difference between checkerboard & blocks (i.e., final height)
+        self.__rot_offset1 = [0, 0, 0]      # rot offset of the arm base (deg)
+        self.__rot_offset2 = [0, 0, 0]      # rot offset of the arm base (deg)
+        self.__jaw_opening = [40]           # (deg)
+        self.__jaw_opening_drop = [150]     # (deg) Daniel: can actually help with the stuck block case sometimes if it's large enough
+        self.__jaw_closing = [-30]          # (deg)
 
         # threading
         self.nStart = 0.0

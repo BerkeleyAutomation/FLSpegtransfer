@@ -4,15 +4,17 @@ from FLSpegtransfer.motion.dvrkDualArm import dvrkArm
 import FLSpegtransfer.utils.CmnUtil as U
 import time
 
+
 def move_to_corners(arm_name, roll_angle=0):
     row_board = 6
     col_board = 8
 
     pos_org = [[0.055, 0.0, -0.1], [-0.055, 0.0, -0.1]]
-    rot_org1 = np.array([roll_angle, 30, -10]) * np.pi / 180.
-    rot_org2 = np.array([roll_angle, 0, 0]) * np.pi / 180.
+    rot_org1 = np.array([roll_angle, 30, -10]) * np.pi / 180.  # Daniel: I tuned the yaw and pitch.
+    rot_org2 = np.array([roll_angle, -15, 0]) * np.pi / 180.   # Daniel: I tuned the yaw and pitch.
     rot_org = [U.euler_to_quaternion(rot_org1), U.euler_to_quaternion(rot_org2)]
-    jaw_org = [[-20 * np.pi / 180.], [-20 * np.pi / 180.]]
+    jaw_org = [[-40 * np.pi / 180.], [-40 * np.pi / 180.]]
+    jaw_open = [[90 * np.pi / 180.], [90 * np.pi / 180.]]
     ready_height = 0.03
 
     arm = dvrkArm(arm_name)
@@ -26,6 +28,7 @@ def move_to_corners(arm_name, roll_angle=0):
     mapping = MappingC2R(filename, row_board, col_board)
 
     # Move PSM1 to go through all points.
+    arm.set_jaw(jaw_open[index])
     arm.set_pose(pos_org[index], rot_org[index])
     arm.set_jaw(jaw_org[index])
 
@@ -50,6 +53,8 @@ def move_to_corners(arm_name, roll_angle=0):
                 arm.set_pose([pos[0], pos[1], pos[2]+ready_height], rot_org[index])
                 arm.set_jaw(jaw_org[index])
                 arm.set_pose(pos, rot_org[index])
+                arm.set_jaw(jaw_open[index])
+                arm.set_jaw(jaw_org[index])
                 user_input = raw_input("Keep going?")
                 if user_input == 'n':
                     arm.set_pose([pos[0], pos[1], pos[2] + ready_height], rot_org[index])
@@ -61,6 +66,7 @@ def move_to_corners(arm_name, roll_angle=0):
     arm.set_pose(pos_org[index], rot_org[index])
     arm.set_jaw(jaw_org[index])
 
+
 def interpolate(output_0, output_90, roll_angle):
     # interpolate the outputs according to the given roll angle
     roll_angle = abs(roll_angle)
@@ -71,8 +77,9 @@ def interpolate(output_0, output_90, roll_angle):
     output_final = output_0 + (roll_angle - 0) * (output_90 - output_0) / (90 - 0)
     return output_final
 
+
 if __name__ == "__main__":
     #move_to_corners(arm_name='/PSM2', roll_angle=0)
     #move_to_corners(arm_name='/PSM2', roll_angle=90)
-    #move_to_corners(arm_name='/PSM1', roll_angle=0)
-    move_to_corners(arm_name='/PSM1', roll_angle=90)
+    move_to_corners(arm_name='/PSM1', roll_angle=0)
+    #move_to_corners(arm_name='/PSM1', roll_angle=90)

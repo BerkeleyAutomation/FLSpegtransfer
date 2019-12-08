@@ -5,11 +5,13 @@ import rospy
 import time
 from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image, CompressedImage, PointCloud2
+import sys
 
 from FLSpegtransfer.vision.BlockDetection_dual import BlockDetection
 from FLSpegtransfer.vision.MappingC2R import MappingC2R
 from FLSpegtransfer.motion.dvrkBlockTransfer import dvrkBlockTransfer
 import FLSpegtransfer.utils.CmnUtil as U
+
 
 class FLSPegTransfer():
     def __init__(self):
@@ -107,7 +109,7 @@ class FLSPegTransfer():
         n_rarm = np.pad(n_rarm, pad_width=(0, max(0, len(n_larm)-len(n_rarm))), mode='constant', constant_values=(0,0))
         return n_larm, n_rarm
 
-    def move_blocks(self, pick_number_larm, pick_number_rarm, final_gp_larm, final_pp_larm, final_gp_rarm, final_pp_rarm):
+    def move_blocks(self, pick_number_larm, pick_number_rarm, final_gp_larm, final_pp_larm, final_gp_rarm, final_pp_rarm, direction):
         arg_pick = np.argwhere(np.array(final_gp_rarm)[:, 0] == pick_number_rarm)
         arg_place = arg_pick
         if len(arg_pick) == 0 or len(arg_place) == 0:
@@ -119,9 +121,11 @@ class FLSPegTransfer():
             arg_pick = arg_pick[0][0]
             arg_place = arg_place[0][0]
             pos_pick1 = self.__mapping1.transform_pixel2robot(final_gp_rarm[arg_pick][3:], final_gp_rarm[arg_pick][2])
-            rot_pick1 = [final_gp_rarm[arg_pick][2], 0, 0]
+            rot_pick1 = [final_gp_rarm[arg_pick][2], 30.0, -10.0]   # Daniel: yaw/pitch used for PSM1 calibration (what we did in single arm).
             pos_place1 = self.__mapping1.transform_pixel2robot(final_pp_rarm[arg_place][3:], final_pp_rarm[arg_place][2])
-            rot_place1 = [final_pp_rarm[arg_place][2], 0, 0]
+            # Daniel: need to tune rot_place1, like in the single-arm case. Since this is PSM1, I am just copying the value we did in single arm.
+            # EDIT: all right, sometimes it is not ideal. Darn...
+            rot_place1 = [final_pp_rarm[arg_place][2], 30.0, -10.0]
 
         arg_pick = np.argwhere(np.array(final_gp_larm)[:, 0] == pick_number_larm)
         arg_place = arg_pick
@@ -134,9 +138,10 @@ class FLSPegTransfer():
             arg_pick = arg_pick[0][0]
             arg_place = arg_place[0][0]
             pos_pick2 = self.__mapping2.transform_pixel2robot(final_gp_larm[arg_pick][3:], final_gp_larm[arg_pick][2])
-            rot_pick2 = [final_gp_larm[arg_pick][2], 0, 0]
+            rot_pick2 = [final_gp_larm[arg_pick][2], -15.0, 0.0]   # Daniel:  yaw/pitch used for PSM2 calibration.
             pos_place2 = self.__mapping2.transform_pixel2robot(final_pp_larm[arg_place][3:], final_pp_larm[arg_place][2])
-            rot_place2 = [final_pp_larm[arg_place][2], 0, 0]
+            # Daniel: need to tune rot_place2, like in the single-arm case. It probably should not be the same as the PSM1 case.
+            rot_place2 = [final_pp_larm[arg_place][2], -15.0, 0.0]
 
         which_arm = 'Both'
         pos_pick1 = [pos_pick1[0] + self.__pos_offset1[0], pos_pick1[1] + self.__pos_offset1[1],
@@ -148,7 +153,8 @@ class FLSPegTransfer():
 
     def main(self):
         try:
-            user_input = raw_input("Are you going to proceed automatically? (y or n)")
+            #user_input = raw_input("Are you going to proceed automatically? (y or n)")
+            user_input = 'n'
             if user_input == "y":   auto_flag = True
             elif user_input == "n": auto_flag = False
             else:   return
@@ -169,7 +175,7 @@ class FLSPegTransfer():
                     cv2.imshow("masked_blocks", blocks_overlayed)
                     cv2.waitKey(1000)
                     if not auto_flag:
-                        user_input = raw_input("1: Left to right,  2: Right to left")
+                        user_input = raw_input("1: Left to right,  2: Right to left, anything else quit: ")
                         if user_input == "1":
                             self.__moving_l2r_flag = True
                             self.__moving_r2l_flag = False
@@ -179,6 +185,8 @@ class FLSPegTransfer():
                         else:
                             self.__moving_l2r_flag = False
                             self.__moving_r2l_flag = False
+                            print('Exiting now.')
+                            sys.exit()
 
                     # Move blocks from left to right
                     if self.__moving_l2r_flag:
@@ -188,7 +196,8 @@ class FLSPegTransfer():
                                 self.__moving_l2r_flag = False
                                 self.__moving_r2l_flag = True
                         for nl, nr in zip(n_larm, n_rarm):
-                            self.move_blocks(nl, nr, final_gp_larm, final_pp_larm, final_gp_rarm, final_pp_rarm)
+                            self.move_blocks(nl, nr, final_gp_larm, final_pp_larm, final_gp_rarm, final_pp_rarm, 'l2r')
+
                     # Move blocks from right to left
                     elif self.__moving_r2l_flag:
                         n_larm, n_rarm = self.select_ordering(final_gp_larm, final_gp_rarm, direction='r2l')
@@ -197,7 +206,7 @@ class FLSPegTransfer():
                                 self.__moving_l2r_flag = False
                                 self.__moving_r2l_flag = False
                         for nl, nr in zip(n_larm, n_rarm):
-                            self.move_blocks(nl, nr, final_gp_larm, final_pp_larm, final_gp_rarm, final_pp_rarm)
+                            self.move_blocks(nl, nr, final_gp_larm, final_pp_larm, final_gp_rarm, final_pp_rarm, 'r2l')
         finally:
             cv2.destroyAllWindows()
 

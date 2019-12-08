@@ -12,6 +12,7 @@ from FLSpegtransfer.vision.MappingC2R import MappingC2R
 from FLSpegtransfer.motion.dvrkBlockTransfer import dvrkBlockTransfer
 import FLSpegtransfer.utils.CmnUtil as U
 
+
 class FLSPegTransfer():
     def __init__(self):
         # import other modules
@@ -113,7 +114,7 @@ class FLSPegTransfer():
             arg_pick = arg_pick[0][0]
             arg_place = arg_place[0][0]
             pos_pick1 = self.__mapping1.transform_pixel2robot(final_gp_rarm[arg_pick][3:], final_gp_rarm[arg_pick][2])
-            rot_pick1 = [final_gp_rarm[arg_pick][2], 30, -10]
+            rot_pick1 = [final_gp_rarm[arg_pick][2], 30, -10]  # Daniel: these are yaw/pitch we used for calibration.
             pos_place1 = self.__mapping1.transform_pixel2robot(final_pp_rarm[arg_place][3:], final_pp_rarm[arg_place][2])
 
             # Daniel: TUNE! These values might have to be different from calibration.
@@ -192,6 +193,7 @@ class FLSPegTransfer():
                                 self.__moving_r2l_flag = True
                         for nr in n_rarm:
                             self.move_blocks(nr, final_gp_rarm, final_pp_rarm, 'l2r')
+
                     # Move blocks from right to left
                     elif self.__moving_r2l_flag:
                         n_rarm = self.select_ordering(final_gp_rarm, direction='r2l')
