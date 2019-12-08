@@ -94,20 +94,50 @@ class FLSPegTransfer():
         return cropped
 
     def select_ordering(self, final_gp_larm, final_gp_rarm, direction):
-        """Daniel: select block ordering. Need protection against empty arrays."""
-        if direction == 'l2r':
-            n_larm = np.array(final_gp_larm)[:,0]
-            n_rarm = np.array(final_gp_rarm)[:,0]
-            n_larm = map(int, n_larm[n_larm<=6])
-            n_rarm = map(int, n_rarm[n_rarm<=6])
-        elif direction == 'r2l':
-            n_larm = np.array(final_gp_larm)[:,0]
-            n_rarm = np.array(final_gp_rarm)[:,0]
-            n_larm = map(int, n_larm[n_larm>6])
-            n_rarm = map(int, n_rarm[n_rarm>6])
+        """Daniel: select block ordering. Need protection against empty arrays.
 
+        Pegs are numbered from 1 to 12. So, for example, if we are doing r2l, and we have six
+        blocks available, then the n_larm and n_rarm could be: [ 8  7 10] and [ 9 12 11], respectively.
+        Returns (n_larm,n_rarm), two lists (well, numpy arrays) containing the indices.
+        The map function converts n_larm and n_rarm to be lists of integers.
+        """
+        if direction == 'l2r':
+            if len(final_gp_larm) == 0:
+                n_larm = []
+            else:
+                n_larm = np.array(final_gp_larm)[:,0]
+                n_larm = map(int, n_larm[n_larm<=6])
+            if len(final_gp_rarm) == 0:
+                n_rarm = []
+            else:
+                n_rarm = np.array(final_gp_rarm)[:,0]
+                n_rarm = map(int, n_rarm[n_rarm<=6])
+        elif direction == 'r2l':
+            if len(final_gp_larm) == 0:
+                n_larm = []
+            else:
+                n_larm = np.array(final_gp_larm)[:,0]
+                n_larm = map(int, n_larm[n_larm>6])
+            if len(final_gp_rarm) == 0:
+                n_rarm = []
+            else:
+                n_rarm = np.array(final_gp_rarm)[:,0]
+                n_rarm = map(int, n_rarm[n_rarm>6])
+
+        #print(np.array(final_gp_larm), np.array(final_gp_larm).shape)
+        #print(np.array(final_gp_rarm), np.array(final_gp_rarm).shape)
+        #print(len(final_gp_larm), final_gp_larm)
+        #print(len(final_gp_rarm), final_gp_larm)
+        #print(n_larm)
+        #print(n_rarm)
+
+        # Daniel: what is this code supposed to be doing? A little bit confused. It's not in the single arm case.
+        # From tests, if any of the lists are empty then this will make it [0.0], a bit weird.
+        # In downstream code, we iterate through both n_larm and n_rarm so we need them to be same lengths.
+        # I think that's what this does -- makes lengths the same.
         n_larm = np.pad(n_larm, pad_width=(0, max(0, len(n_rarm)-len(n_larm))), mode='constant', constant_values=(0,0))
         n_rarm = np.pad(n_rarm, pad_width=(0, max(0, len(n_larm)-len(n_rarm))), mode='constant', constant_values=(0,0))
+
         return n_larm, n_rarm
 
     def move_blocks(self, pick_number_larm, pick_number_rarm, final_gp_larm, final_pp_larm, final_gp_rarm, final_pp_rarm, direction):
@@ -116,15 +146,31 @@ class FLSPegTransfer():
         Also, some logic in case we have uneven number of blocks per arm, to protect against failures.
         The final_{g,p}p_{l,r}arm values are lists, of length equal to the number of blocks 'assigned' to the arm.
         So for the dual case, it would be a value in {0,1,2,3}.
+
+        HUGE NOTE! The left arm is left w.r.t. us siting not where my machine is but where davinci arm/endo
+        machines are if the monitors aren't turned. Thus, LEFT ARM IS PSM2. RIGHT ARM IS PSM1.
+
+        :pick_number_larm: (integer) index of block to pick.
+        :pick_number_rarm: (integer) index of block to pick.
         """
         print('\nCalling move_blocks()')
         print('\tpick_number_larm: {}'.format(pick_number_larm))
         print('\tpick_number_rarm: {}'.format(pick_number_rarm))
         print('\tleft arm grasp/pick:  {}, {}'.format(final_gp_larm, final_pp_larm))
-        print('\tright arm grasp/pick: {}, {}'.format(final_gp_rarm, final_pp_rarm))
-
-        arg_pick = np.argwhere(np.array(final_gp_rarm)[:, 0] == pick_number_rarm)
-        arg_place = arg_pick
+        print('\tright arm grasp/pick: {}, {}\n'.format(final_gp_rarm, final_pp_rarm))
+        
+        # Daniel: needed this check, otherwise final_gp_rarm might be empty and the np.argwhere doesn't apply.
+        # This is the right arm, or PSM1, the one that is closer to Daniel's machine. THIS IS THE ONE
+        # THAT WE WERE USING FOR THE SINGLE ARM CASE, HENCE WE SHOUL DBORROW OLDER CALIBRATION.
+        if len(final_gp_rarm) == 0:
+            arg_pick = []
+            arg_place = []
+            ignore_psm1 = True
+        else:
+            arg_pick = np.argwhere(np.array(final_gp_rarm)[:, 0] == pick_number_rarm)
+            arg_place = arg_pick
+            ignore_psm1 = False
+            
         if len(arg_pick) == 0 or len(arg_place) == 0:
             pos_pick1 = []
             rot_pick1 = []
@@ -142,10 +188,18 @@ class FLSPegTransfer():
             if direction == 'l2r':
                 rot_place1 = [final_pp_rarm[arg_place][2], 40.0, -10.0]
             else:
-                rot_place1 = [final_pp_rarm[arg_place][2], 30.0, -10.0]
+                rot_place1 = [final_pp_rarm[arg_place][2], 60.0, 0.0]
 
-        arg_pick = np.argwhere(np.array(final_gp_larm)[:, 0] == pick_number_larm)
-        arg_place = arg_pick
+        # Daniel: same thing applies for the other arm!
+        if len(final_gp_larm) == 0:
+            arg_pick = []
+            arg_place = []
+            ignore_psm2 = True
+        else:
+            arg_pick = np.argwhere(np.array(final_gp_larm)[:, 0] == pick_number_larm)
+            arg_place = arg_pick
+            ignore_psm2 = False
+
         if len(arg_pick) == 0 or len(arg_place) == 0:
             pos_pick2 = []
             rot_pick2 = []
@@ -164,11 +218,23 @@ class FLSPegTransfer():
             else:
                 rot_place2 = [final_pp_larm[arg_place][2], -15.0, 0.0]
 
-        which_arm = 'Both'
-        pos_pick1 = [pos_pick1[0] + self.__pos_offset1[0], pos_pick1[1] + self.__pos_offset1[1],
-                     pos_pick1[2] + self.__pos_offset1[2]]
-        pos_pick2 = [pos_pick2[0] + self.__pos_offset2[0], pos_pick2[1] + self.__pos_offset2[1],
-                     pos_pick2[2] + self.__pos_offset2[2]]
+        assert not ignore_psm1 and ignore_psm2
+        if ignore_psm1:
+            which_arm = 'PSM2'
+            pos_pick2 = [pos_pick2[0] + self.__pos_offset2[0], pos_pick2[1] + self.__pos_offset2[1],
+                         pos_pick2[2] + self.__pos_offset2[2]]
+        elif ignore_psm2:
+            which_arm = 'PSM1'
+            pos_pick1 = [pos_pick1[0] + self.__pos_offset1[0], pos_pick1[1] + self.__pos_offset1[1],
+                         pos_pick1[2] + self.__pos_offset1[2]]
+        else:
+            which_arm = 'Both'
+            pos_pick1 = [pos_pick1[0] + self.__pos_offset1[0], pos_pick1[1] + self.__pos_offset1[1],
+                         pos_pick1[2] + self.__pos_offset1[2]]
+            pos_pick2 = [pos_pick2[0] + self.__pos_offset2[0], pos_pick2[1] + self.__pos_offset2[1],
+                         pos_pick2[2] + self.__pos_offset2[2]]
+        
+        # Finally, call the picking and placing methods.
         self.__dvrk.pickup(pos_pick1=pos_pick1, rot_pick1=rot_pick1, pos_pick2=pos_pick2, rot_pick2=rot_pick2, which_arm=which_arm)
         self.__dvrk.place(pos_place1=pos_place1, rot_place1=rot_place1, pos_place2=pos_place2, rot_place2=rot_place2, which_arm=which_arm)
 
