@@ -1,7 +1,36 @@
 import cv2
 import numpy as np
+import sys
+import os
+
+# (Daniel) some code from my BAIR Blog post:
+# https://gist.github.com/DanielTakeshi/8fe06f1ea1985bb9246abd5fd21c330e
+
+def depth_to_3ch(img, cutoff):
+    """Useful to turn the background into black into the depth images.
+    """
+    w,h = img.shape
+    new_img = np.zeros([w,h,3])
+    img = img.flatten()
+    img[img>cutoff] = 0.0 
+    img = img.reshape([w,h])
+    for i in range(3):
+        new_img[:,:,i] = img 
+    return new_img
+
+
+def depth_scaled_to_255(img):
+    assert np.max(img) > 0.0 
+    img = 255.0/np.max(img)*img
+    img = np.array(img,dtype=np.uint8)
+    for i in range(3):
+        img[:,:,i] = cv2.equalizeHist(img[:,:,i])
+    return img 
+
+
 
 class BlockDetection():
+
     def __init__(self):
         # data members
         self.__mask = []
@@ -28,8 +57,10 @@ class BlockDetection():
         self.__contour = self.load_contour(self.__mask, 2)
 
         # sample grasping points
-        self.__sample_grasping_points = self.load_grasping_point(gp_number=3, dist_center=23, dist_gp=3)
-        self.__sample_placing_points = self.load_grasping_point(gp_number=3, dist_center=18, dist_gp=3)
+        self.__sample_grasping_points = self.load_grasping_point(
+                gp_number=3, dist_center=18, dist_gp=3)
+        self.__sample_placing_points = self.load_grasping_point(
+                gp_number=3, dist_center=12, dist_gp=3)
 
     def load_intrinsics(self, filename):
         # load calibration data

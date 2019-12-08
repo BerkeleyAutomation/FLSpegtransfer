@@ -103,6 +103,8 @@ class FLSPegTransfer():
         return n_rarm
 
     def move_blocks(self, pick_number_rarm, final_gp_rarm, final_pp_rarm, direction):
+        """Daniel: Added a direction parameter in case rotations are different. 
+        """
         arg_pick = np.argwhere(np.array(final_gp_rarm)[:, 0] == pick_number_rarm)
         arg_place = arg_pick
         if len(arg_pick) == 0 or len(arg_place) == 0:

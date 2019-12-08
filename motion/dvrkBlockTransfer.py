@@ -59,6 +59,7 @@ class dvrkBlockTransfer():
         print('Changing jaws to: {}, {}'.format(jaw_org1, jaw_org2))
         self.__dvrk.set_jaw(jaw_org1, jaw_org2)
         print('Changed jaws! Proceeding...')
+        #sys.exit()
 
     def pickup(self, pos_pick1, rot_pick1, pos_pick2, rot_pick2, which_arm='Both'):
         if (which_arm=='PSM1' or which_arm=='Both') and pos_pick1 != [] and rot_pick1 != []:
@@ -141,9 +142,9 @@ class dvrkBlockTransfer():
             print('Not safe! Exiting now!')
             sys.exit()
 
-        # move down toward the block, open once it's past peg, and move down further.
+        # move down toward the block, open ONCE IT'S PAST PEG, and move down further.
         self.__dvrk.set_pose(pos_pick1_i, q_pick1, pos_pick2_i, q_pick2)
-        self.__dvrk.set_jaw(to_rad([90.0]), to_rad([90.0]))
+        self.__dvrk.set_jaw(to_rad([90.0]), to_rad([70.0]))  # I think we want smaller for second one.
         self.__dvrk.set_pose(pos_pick1, q_pick1, pos_pick2, q_pick2)
         self.__dvrk.set_jaw(jaw_closing1, jaw_closing2)
         # NEW WAY --------------------------------

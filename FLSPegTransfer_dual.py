@@ -94,6 +94,7 @@ class FLSPegTransfer():
         return cropped
 
     def select_ordering(self, final_gp_larm, final_gp_rarm, direction):
+        """Daniel: select block ordering. Need protection against empty arrays."""
         if direction == 'l2r':
             n_larm = np.array(final_gp_larm)[:,0]
             n_rarm = np.array(final_gp_rarm)[:,0]
@@ -110,6 +111,18 @@ class FLSPegTransfer():
         return n_larm, n_rarm
 
     def move_blocks(self, pick_number_larm, pick_number_rarm, final_gp_larm, final_pp_larm, final_gp_rarm, final_pp_rarm, direction):
+        """Daniel: adding direction parameter.
+
+        Also, some logic in case we have uneven number of blocks per arm, to protect against failures.
+        The final_{g,p}p_{l,r}arm values are lists, of length equal to the number of blocks 'assigned' to the arm.
+        So for the dual case, it would be a value in {0,1,2,3}.
+        """
+        print('\nCalling move_blocks()')
+        print('\tpick_number_larm: {}'.format(pick_number_larm))
+        print('\tpick_number_rarm: {}'.format(pick_number_rarm))
+        print('\tleft arm grasp/pick:  {}, {}'.format(final_gp_larm, final_pp_larm))
+        print('\tright arm grasp/pick: {}, {}'.format(final_gp_rarm, final_pp_rarm))
+
         arg_pick = np.argwhere(np.array(final_gp_rarm)[:, 0] == pick_number_rarm)
         arg_place = arg_pick
         if len(arg_pick) == 0 or len(arg_place) == 0:
@@ -123,9 +136,13 @@ class FLSPegTransfer():
             pos_pick1 = self.__mapping1.transform_pixel2robot(final_gp_rarm[arg_pick][3:], final_gp_rarm[arg_pick][2])
             rot_pick1 = [final_gp_rarm[arg_pick][2], 30.0, -10.0]   # Daniel: yaw/pitch used for PSM1 calibration (what we did in single arm).
             pos_place1 = self.__mapping1.transform_pixel2robot(final_pp_rarm[arg_place][3:], final_pp_rarm[arg_place][2])
-            # Daniel: need to tune rot_place1, like in the single-arm case. Since this is PSM1, I am just copying the value we did in single arm.
-            # EDIT: all right, sometimes it is not ideal. Darn...
-            rot_place1 = [final_pp_rarm[arg_place][2], 30.0, -10.0]
+            # Daniel: need to tune rot_place1, like in the single-arm case.
+            # Since this is PSM1, I am just copying the value we did in single arm.
+            # EDIT: all right, sometimes it is not ideal. Darn... may have to re-tune.
+            if direction == 'l2r':
+                rot_place1 = [final_pp_rarm[arg_place][2], 40.0, -10.0]
+            else:
+                rot_place1 = [final_pp_rarm[arg_place][2], 30.0, -10.0]
 
         arg_pick = np.argwhere(np.array(final_gp_larm)[:, 0] == pick_number_larm)
         arg_place = arg_pick
@@ -140,8 +157,12 @@ class FLSPegTransfer():
             pos_pick2 = self.__mapping2.transform_pixel2robot(final_gp_larm[arg_pick][3:], final_gp_larm[arg_pick][2])
             rot_pick2 = [final_gp_larm[arg_pick][2], -15.0, 0.0]   # Daniel:  yaw/pitch used for PSM2 calibration.
             pos_place2 = self.__mapping2.transform_pixel2robot(final_pp_larm[arg_place][3:], final_pp_larm[arg_place][2])
-            # Daniel: need to tune rot_place2, like in the single-arm case. It probably should not be the same as the PSM1 case.
-            rot_place2 = [final_pp_larm[arg_place][2], -15.0, 0.0]
+            # Daniel: need to tune rot_place2, like in the single-arm case.
+            # It probably should not be the same as the PSM1 case.
+            if direction == 'l2r':
+                rot_place2 = [final_pp_larm[arg_place][2], -15.0, 0.0]
+            else:
+                rot_place2 = [final_pp_larm[arg_place][2], -15.0, 0.0]
 
         which_arm = 'Both'
         pos_pick1 = [pos_pick1[0] + self.__pos_offset1[0], pos_pick1[1] + self.__pos_offset1[1],
@@ -169,6 +190,9 @@ class FLSPegTransfer():
                     # Perception output
                     final_gp_larm, final_pp_larm, final_gp_rarm, final_pp_rarm, peg_points, pegs_overlayed, blocks_overlayed\
                         = self.__block_detection.FLSPerception(self.__img_depth)
+                    print('\nJust ran FLSPerception() code to get grasping and placing poses.')
+                    print('len(final_gp_larm): {}'.format(len(final_gp_larm)))
+                    print('len(final_gp_rarm): {}'.format(len(final_gp_rarm)))
 
                     cv2.imshow("img_color", self.__img_color)
                     cv2.imshow("masked_pegs", pegs_overlayed)
@@ -191,7 +215,7 @@ class FLSPegTransfer():
                     # Move blocks from left to right
                     if self.__moving_l2r_flag:
                         n_larm, n_rarm = self.select_ordering(final_gp_larm, final_gp_rarm, direction='l2r')
-                        if auto_flag:   # check if completed
+                        if auto_flag:
                             if len(n_larm)==0 and len(n_rarm)==0:
                                 self.__moving_l2r_flag = False
                                 self.__moving_r2l_flag = True
