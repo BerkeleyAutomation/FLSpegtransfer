@@ -81,5 +81,5 @@ def interpolate(output_0, output_90, roll_angle):
 if __name__ == "__main__":
     #move_to_corners(arm_name='/PSM2', roll_angle=0)
     #move_to_corners(arm_name='/PSM2', roll_angle=90)
-    move_to_corners(arm_name='/PSM1', roll_angle=0)
-    #move_to_corners(arm_name='/PSM1', roll_angle=90)
+    #move_to_corners(arm_name='/PSM1', roll_angle=0)
+    move_to_corners(arm_name='/PSM1', roll_angle=90)

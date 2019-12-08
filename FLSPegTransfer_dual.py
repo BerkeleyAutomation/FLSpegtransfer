@@ -161,8 +161,9 @@ class FLSPegTransfer():
         
         # Daniel: needed this check, otherwise final_gp_rarm might be empty and the np.argwhere doesn't apply.
         # This is the right arm, or PSM1, the one that is closer to Daniel's machine. THIS IS THE ONE
-        # THAT WE WERE USING FOR THE SINGLE ARM CASE, HENCE WE SHOUL DBORROW OLDER CALIBRATION.
-        if len(final_gp_rarm) == 0:
+        # THAT WE WERE USING FOR THE SINGLE ARM CASE, HENCE WE SHOULD BORROW OLDER CALIBRATION.
+        # Oh, also need a check for pick_number_rarm... in case we had something like 3 vs 2 to start.
+        if len(final_gp_rarm) == 0 or (pick_number_rarm == 0):
             arg_pick = []
             arg_place = []
             ignore_psm1 = True
@@ -186,12 +187,12 @@ class FLSPegTransfer():
             # Since this is PSM1, I am just copying the value we did in single arm.
             # EDIT: all right, sometimes it is not ideal. Darn... may have to re-tune.
             if direction == 'l2r':
-                rot_place1 = [final_pp_rarm[arg_place][2], 40.0, -10.0]
+                rot_place1 = [final_pp_rarm[arg_place][2], 50.0, -20.0]
             else:
                 rot_place1 = [final_pp_rarm[arg_place][2], 60.0, 0.0]
 
         # Daniel: same thing applies for the other arm!
-        if len(final_gp_larm) == 0:
+        if len(final_gp_larm) == 0 or (pick_number_larm == 0):
             arg_pick = []
             arg_place = []
             ignore_psm2 = True
@@ -213,12 +214,13 @@ class FLSPegTransfer():
             pos_place2 = self.__mapping2.transform_pixel2robot(final_pp_larm[arg_place][3:], final_pp_larm[arg_place][2])
             # Daniel: need to tune rot_place2, like in the single-arm case.
             # It probably should not be the same as the PSM1 case.
+            # This is the one with the 'slightly broken' arm, FYI.
             if direction == 'l2r':
                 rot_place2 = [final_pp_larm[arg_place][2], -15.0, 0.0]
             else:
                 rot_place2 = [final_pp_larm[arg_place][2], -15.0, 0.0]
 
-        assert not ignore_psm1 and ignore_psm2
+        assert not (ignore_psm1 and ignore_psm2)
         if ignore_psm1:
             which_arm = 'PSM2'
             pos_pick2 = [pos_pick2[0] + self.__pos_offset2[0], pos_pick2[1] + self.__pos_offset2[1],

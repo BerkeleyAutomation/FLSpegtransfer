@@ -143,8 +143,9 @@ class dvrkBlockTransfer():
             sys.exit()
 
         # move down toward the block, open ONCE IT'S PAST PEG, and move down further.
+        # Daniel: smaller for 'slightly broken' second arm
         self.__dvrk.set_pose(pos_pick1_i, q_pick1, pos_pick2_i, q_pick2)
-        self.__dvrk.set_jaw(to_rad([90.0]), to_rad([65.0]))  # I think we want smaller for second one.
+        self.__dvrk.set_jaw(to_rad([90.0]), to_rad([55.0]))
         self.__dvrk.set_pose(pos_pick1, q_pick1, pos_pick2, q_pick2)
         self.__dvrk.set_jaw(jaw_closing1, jaw_closing2)
         # NEW WAY --------------------------------
