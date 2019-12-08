@@ -26,14 +26,14 @@ class dvrkBlockTransfer():
         self.__jaw_org2 = [-90.0]             # jaw angle in (deg)
 
         self.__height_ready = -0.115
-        self.__height_drop = -0.133
+        self.__height_drop = -0.135         # the smaller this is, the lower the gripper is when it releases blocks.
         self.__height_adjusted_i1 = -0.028  # (intermediate) height difference, when we reach above peg and ask user if we are good.
         self.__height_adjusted_i2 = -0.000  # (intermediate) height difference, to lower past peg but above block -- test on tallest block
-        self.__height_adjusted = -0.010    # (final) height difference between checkerboard & blocks (i.e., final height)
+        self.__height_adjusted = -0.011    # (final) height difference between checkerboard & blocks (i.e., final height)
         self.__rot_offset1 = [0, 0, 0]     # rot offset of the arm base (deg)
         self.__rot_offset2 = [0, 0, 0]     # rot offset of the arm base (deg)
         self.__jaw_opening = [40]          # (deg)
-        self.__jaw_opening_drop = [50]     # (deg)
+        self.__jaw_opening_drop = [120]    # (deg) Daniel: can actually help with the stuck block case sometimes if it's large enough
         self.__jaw_closing = [-5]          # (deg)
 
         # threading
@@ -195,10 +195,16 @@ class dvrkBlockTransfer():
         self.__dvrk.set_pose(pos_place1, q_place1, pos_place2, q_place2)
         self.__dvrk.set_jaw(jaw_closing1, jaw_closing2)
 
-        print(rot_place1)
-        print(rot_place2)
-        print(rot_place1)
-        #sys.exit()
+        # Daniel note: this is where we can debug the placing angle. Need to get placing correct!
+        # Also keep in mind, the ideal placing angle differs from l2r versus r2l.
+        print(rot_place1, rot_place2)
+        print('rot_temp1: ', rot_temp1)
+        # Can either exit or just proceed with input.
+        #sys.exit() 
+        user_input = raw_input('About to release. OK? (y/n)')
+        if user_input != 'y':
+            print('Exiting now!')
+            sys.exit()
 
         # Open the jaw
         self.__dvrk.set_pose(pos_place1, q_place1, pos_place2, q_place2)
@@ -207,6 +213,7 @@ class dvrkBlockTransfer():
         # move upon the pick-up spot hopefully without block
         self.__dvrk.set_pose(pos_ready1, q_place1, pos_ready2, q_place2)
         self.__dvrk.set_jaw(jaw_opening_drop1, jaw_opening_drop2)
+        self.__dvrk.set_jaw(jaw_closing1, jaw_closing2)
 
 
 if __name__ == "__main__":

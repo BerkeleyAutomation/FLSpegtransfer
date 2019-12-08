@@ -119,9 +119,11 @@ class FLSPegTransfer():
             # Daniel: TUNE! These values might have to be different from calibration.
             # I tested with the single arm case.
             if direction == 'l2r':
-                rot_place1 = [final_pp_rarm[arg_place][2], 50, -20]
+                # roughly [.., 40, -20] seems reasonable 
+                rot_place1 = [final_pp_rarm[arg_place][2], 40, -20]
             else:
-                rot_place1 = [final_pp_rarm[arg_place][2], 70, -50]
+                # don't do [.., 60, 40] that's really bad.
+                rot_place1 = [final_pp_rarm[arg_place][2], 70, -40]
 
         pos_pick2 = []
         rot_pick2 = []
