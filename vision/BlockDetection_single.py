@@ -339,7 +339,7 @@ class BlockDetection():
         count = 1
         font = cv2.FONT_HERSHEY_SIMPLEX
         for p in peg_points:
-            cv2.circle(pegs_colored, (p[0], p[1]), 5, (0, 255, 0), 2, -1)   # green color overlayed
+            cv2.circle(pegs_colored, (p[0], p[1]), 7, (0, 255, 0), 2, -1)   # green color overlayed
             if put_text:
                 text = "%d" % (count);
                 cv2.putText(pegs_colored, text, (p[0]-10, p[1]-10), font, 0.5, (255, 255, 255), 1)
@@ -350,10 +350,10 @@ class BlockDetection():
         overlayed = np.copy(img)
         for gp in selected_grasping_pose_left:
             gp = map(int, gp)
-            cv2.circle(overlayed, (gp[3], gp[4]), 3, (0, 0, 255), 2, -1)  # red color overlayed
+            cv2.circle(overlayed, (gp[3], gp[4]), 6, (0, 0, 255), 2, -1)  # red color overlayed
         for gp in selected_grasping_pose_right:
             gp = map(int, gp)
-            cv2.circle(overlayed, (gp[3], gp[4]), 3, (255, 255, 255), 2, -1)  # white color overlayed
+            cv2.circle(overlayed, (gp[3], gp[4]), 6, (255, 255, 255), 2, -1)  # white color overlayed
         return overlayed
 
     def overlay_numbering(self, img, grasping_pose):
@@ -416,13 +416,18 @@ class BlockDetection():
         final_gp_rarm = self.find_grasping_pose(pickup_blocks_rarm, peg_points, 'right')
         final_pp_rarm = self.find_placing_pose(final_gp_rarm, place_blocks_rarm, peg_points)
 
-        # Coloring & Overlay
+        # Coloring & Overlay (Daniel: use for getting images to report for paper)
         blocks_overlayed = self.overlay_blocks_and_pegs(blocks_added_pegs, peg_points)
+        #cv2.imwrite('img_blocks_01.png', blocks_overlayed)
         blocks_overlayed = self.overlay_block_contour(blocks_overlayed, pickup_blocks_rarm)
+        #cv2.imwrite('img_blocks_02.png', blocks_overlayed)
         blocks_overlayed = self.overlay_block_contour(blocks_overlayed, place_blocks_rarm)
+        #cv2.imwrite('img_blocks_03.png', blocks_overlayed)
         blocks_overlayed = self.overlay_grasping_pose(blocks_overlayed, final_gp_rarm, final_gp_rarm)
+        #cv2.imwrite('img_blocks_04.png', blocks_overlayed)
         blocks_overlayed = self.overlay_grasping_pose(blocks_overlayed, final_pp_rarm, final_pp_rarm)
-        # blocks_overlayed = self.overlay_numbering(blocks_overlayed, all_grasping_pose)
+        #cv2.imwrite('img_blocks_05.png', blocks_overlayed)
+        #blocks_overlayed = self.overlay_numbering(blocks_overlayed, all_grasping_pose)
         return final_gp_rarm, final_pp_rarm, peg_points, pegs_overlayed, blocks_overlayed
 
 

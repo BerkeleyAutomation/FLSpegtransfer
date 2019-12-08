@@ -159,12 +159,13 @@ class FLSPegTransfer():
                     cv2.imshow("masked_pegs", pegs_overlayed)
                     cv2.imshow("masked_blocks", blocks_overlayed)
 
-                    # DEBUGGING -- get images for the paper.
-                    cv2.imwrite('img_color.png', self.__img_color)
-                    cv2.imwrite('img_depth.png', self.__img_depth)
-                    cv2.imwrite('img_masked_pegs.png', pegs_overlayed)
-                    cv2.imwrite('img_masked_blocks.png', blocks_overlayed)
-                    sys.exit()
+                    ## DEBUGGING -- get images for the paper.
+                    # And also, see BlockDetection_single.FLSPerception()
+                    #cv2.imwrite('img_color.png', self.__img_color)
+                    #cv2.imwrite('img_depth.png', self.__img_depth)
+                    #cv2.imwrite('img_masked_pegs.png', pegs_overlayed)
+                    #cv2.imwrite('img_masked_blocks.png', blocks_overlayed)
+                    #sys.exit()
 
                     cv2.waitKey(1000)
                     if not auto_flag:
