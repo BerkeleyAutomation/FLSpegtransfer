@@ -199,8 +199,8 @@ class dvrkBlockTransfer():
 
         # Daniel note: this is where we can debug the placing angle. Need to get placing correct!
         # Also keep in mind, the ideal placing angle differs from l2r versus r2l.
-        print(rot_place1, rot_place2)
-        print('rot_temp1: ', rot_temp1)
+        print('rot_place1: ', rot_place1)
+        print('rot_place2: ', rot_place2)
         # Can either exit or just proceed with input.
         #sys.exit() 
         user_input = raw_input('About to release. OK? (y/n)')
