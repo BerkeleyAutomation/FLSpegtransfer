@@ -159,6 +159,10 @@ class dvrkBlockTransfer():
             pos_ready1 = [pos_place1[0], pos_place1[1], self.__height_ready]
             pos_place1 = [pos_place1[0], pos_place1[1], self.__height_drop]
             pos_place1[2] += self.__height_adjusted
+            
+            if rot_place1[0] == 60:
+                rot_place1 = [60, 45, 10]
+
             rot_temp1 = (np.array(rot_place1) + np.array(self.__rot_offset1)) * np.pi / 180.
             q_place1 = U.euler_to_quaternion(rot_temp1)
             jaw_opening1 = np.array(self.__jaw_opening) * np.pi / 180.

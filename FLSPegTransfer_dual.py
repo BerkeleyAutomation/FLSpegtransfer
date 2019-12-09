@@ -187,9 +187,9 @@ class FLSPegTransfer():
             # Since this is PSM1, I am just copying the value we did in single arm.
             # EDIT: all right, sometimes it is not ideal. Darn... may have to re-tune.
             if direction == 'l2r':
-                rot_place1 = [final_pp_rarm[arg_place][2], 50.0, -20.0]
+                rot_place1 = [final_pp_rarm[arg_place][2], 50.0, -30.0]
             else:
-                rot_place1 = [final_pp_rarm[arg_place][2], 60.0, 0.0]
+                rot_place1 = [final_pp_rarm[arg_place][2], 50.0, -50.0]
 
         # Daniel: same thing applies for the other arm!
         if len(final_gp_larm) == 0 or (pick_number_larm == 0):
@@ -216,9 +216,9 @@ class FLSPegTransfer():
             # It probably should not be the same as the PSM1 case.
             # This is the one with the 'slightly broken' arm, FYI.
             if direction == 'l2r':
-                rot_place2 = [final_pp_larm[arg_place][2], -15.0, 0.0]
+                rot_place2 = [final_pp_larm[arg_place][2], -30.0, 0.0]
             else:
-                rot_place2 = [final_pp_larm[arg_place][2], -15.0, 0.0]
+                rot_place2 = [final_pp_larm[arg_place][2], -20.0, 0.0]
 
         assert not (ignore_psm1 and ignore_psm2)
         if ignore_psm1:

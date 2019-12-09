@@ -60,7 +60,7 @@ class BlockDetection():
         self.__sample_grasping_points = self.load_grasping_point(
                 gp_number=3, dist_center=18, dist_gp=3)
         self.__sample_placing_points = self.load_grasping_point(
-                gp_number=3, dist_center=14, dist_gp=3)
+                gp_number=3, dist_center=12, dist_gp=3)
 
     def load_intrinsics(self, filename):
         # load calibration data
